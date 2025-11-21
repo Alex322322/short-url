@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/Alex322322/short-url/internal/config"
+	"github.com/Alex322322/short-url/internal/storage/sqlite"
 	"github.com/joho/godotenv"
 )
 
@@ -32,13 +33,21 @@ func main() {
 	logger.Debug("Debug is turned on")
 
 	// TODO init storage - sqlite/postgres
+	storage, err := sqlite.NewStorage(cfg.StoragePath)
+	if err != nil {
+		logger.Error("Failed to initialize storage", slog.String("storage_path", cfg.StoragePath), slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
+	_ = storage // TODO remove after storage used
+
 	// TODO init router - chi
 	// TODO run server - net/http
 }
 
 // setup logger based on environment
 func setupLogger(env string) *slog.Logger {
-	
+
 	var logger *slog.Logger
 	switch env {
 	case envLocal:
