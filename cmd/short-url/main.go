@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"log/slog"
 
@@ -23,25 +24,32 @@ func main() {
 		log.Fatalf("Error loading .env file")
 	}
 
-	// TODO init config - cleanenv
+	// init config
 	cfg := config.MustLoad()
 	//fmt.Println(cfg)
 
-	// TODO init logger - slog log/slog
+	// init logger
 	logger := setupLogger(cfg.Env)
 	logger.Info("Logger short-url initialized", slog.String("env", cfg.Env))
 	logger.Debug("Debug is turned on")
 
-	// TODO init storage - sqlite/postgres
+	// init storage
 	storage, err := sqlite.NewStorage(cfg.StoragePath)
 	if err != nil {
-		logger.Error("Failed to initialize storage", slog.String("storage_path", cfg.StoragePath), slog.String("error", err.Error()))
+		logger.Error(
+			"Failed to initialize storage",
+			slog.String("storage_path", cfg.StoragePath), 
+			slog.String("error", err.Error()),
+		)
 		os.Exit(1)
 	}
+
 
 	_ = storage // TODO remove after storage used
 
 	// TODO init router - chi
+
+
 	// TODO run server - net/http
 }
 
