@@ -55,7 +55,7 @@ func main() {
 
 	_ = storage // TODO remove after storage used
 
-	// TODO init router - chi
+	// init router - chi
 	router := chi.NewRouter()
 
 	// setup middleware
@@ -65,13 +65,22 @@ func main() {
 	router.Use(middleware.Recoverer)                 // recover from panics
 	router.Use(middleware.URLFormat)                 // parse extensions from URL
 	router.Use(middleware.Timeout(60 * time.Second))
-	//
 
-	router.Post("/url", save.New(logger, storage))
+	// setup authorization middleware
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("short-url", map[string]string{
+			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		}))
+		r.Post("/", save.New(logger, storage))
+		r.Delete("/{alias}", delete.New(logger, storage))
+	})
+
+	// setup routes
+	//router.Post("/url", save.New(logger, storage))
 	router.Get("/{alias}", redirect.New(logger, storage))
-	router.Delete("/{alias}", delete.New(logger, storage))
+	//router.Delete("/url/{alias}", delete.New(logger, storage))
 
-	// TODO run server - net/http
+	// setup server
 	logger.Info("Starting HTTP server", slog.String("address", cfg.HTTPServer.Address))
 	srv := &http.Server{
 		Addr:         cfg.HTTPServer.Address,
