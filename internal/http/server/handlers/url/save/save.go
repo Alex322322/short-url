@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Alex322322/short-url/internal/lib/api/response"
 	resp "github.com/Alex322322/short-url/internal/lib/api/response"
 	"github.com/Alex322322/short-url/internal/lib/random"
+	"github.com/Alex322322/short-url/internal/storage"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
@@ -29,7 +29,7 @@ type URLSaver interface {
 	SaveURL(urlToSave string, alias string, timestamp time.Time) (int64, error)
 }
 
-func New(logger *slog.Logger, storage URLSaver) http.HandlerFunc {
+func New(logger *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.save.New"
 
@@ -65,7 +65,7 @@ func New(logger *slog.Logger, storage URLSaver) http.HandlerFunc {
 			alias = random.GenerateAlias(aliasLength)
 		}
 
-		id, err := storage.SaveURL(request.URL, alias, time.Now())
+		id, err := urlSaver.SaveURL(request.URL, alias, time.Now())
 		if err != nil {
 			if err == storage.ErrUrlExists {
 				logger.Info("URL with the same alias already exists", slog.String("url", request.URL), slog.String("alias", alias))
@@ -76,5 +76,16 @@ func New(logger *slog.Logger, storage URLSaver) http.HandlerFunc {
 			render.JSON(w, r, resp.ErrorResponse("Failed to save URL"))
 			return
 		}
+
+		logger.Info("URL saved successfully", slog.Int64("id", id), slog.String("url", request.URL), slog.String("alias", alias))
+
+		responseOK(w, r, alias)
 	}
+}
+
+func responseOK(w http.ResponseWriter, r *http.Request, alias string) {
+	render.JSON(w, r, Response{
+		Response: resp.OKResponse(),
+		Alias:    alias,
+	})
 }

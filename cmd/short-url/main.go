@@ -2,15 +2,18 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"time"
 
 	"log/slog"
 
 	"github.com/Alex322322/short-url/internal/config"
+	"github.com/Alex322322/short-url/internal/http/server/handlers/url/save"
 	mwLogger "github.com/Alex322322/short-url/internal/http/server/middleware/logger"
 	"github.com/Alex322322/short-url/internal/storage/sqlite"
 	"github.com/go-chi/chi"
+
 	//"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
@@ -62,8 +65,22 @@ func main() {
 	router.Use(middleware.Timeout(60 * time.Second))
 	//
 
+	router.Post("/url", save.New(logger, storage))
 
 	// TODO run server - net/http
+	logger.Info("Starting HTTP server", slog.String("address", cfg.HTTPServer.Address))
+	srv := &http.Server{
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+	if err := srv.ListenAndServe(); err != nil {
+		logger.Error("HTTP server failed", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	logger.Error("HTTP server stopped")
 }
 
 // setup logger based on environment
