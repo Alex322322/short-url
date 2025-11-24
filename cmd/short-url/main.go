@@ -8,7 +8,11 @@ import (
 	"log/slog"
 
 	"github.com/Alex322322/short-url/internal/config"
+	mwLogger "github.com/Alex322322/short-url/internal/http/server/middleware/logger"
 	"github.com/Alex322322/short-url/internal/storage/sqlite"
+	"github.com/go-chi/chi"
+	//"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 )
 
@@ -38,16 +42,25 @@ func main() {
 	if err != nil {
 		logger.Error(
 			"Failed to initialize storage",
-			slog.String("storage_path", cfg.StoragePath), 
+			slog.String("storage_path", cfg.StoragePath),
 			slog.String("error", err.Error()),
 		)
 		os.Exit(1)
 	}
 
-
 	_ = storage // TODO remove after storage used
 
 	// TODO init router - chi
+	router := chi.NewRouter()
+
+	// setup middleware
+	router.Use(middleware.RequestID)                 // assign request ID to every request
+	router.Use(middleware.Logger)                    // log requests
+	router.Use(mwLogger.NewLoggerMiddleware(logger)) // custom logger middleware
+	router.Use(middleware.Recoverer)                 // recover from panics
+	router.Use(middleware.URLFormat)                 // parse extensions from URL
+	router.Use(middleware.Timeout(60 * time.Second))
+	//
 
 
 	// TODO run server - net/http
