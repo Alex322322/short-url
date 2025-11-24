@@ -15,6 +15,11 @@ type URLDeleter interface {
 	DeleteUrl(alias string) error
 }
 
+type Response struct {
+	resp.Response
+	Alias string `json:"alias,omitempty"`
+}
+
 func New(logger *slog.Logger, urlDeleter URLDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.delete.New"
@@ -44,6 +49,13 @@ func New(logger *slog.Logger, urlDeleter URLDeleter) http.HandlerFunc {
 
 		logger.Info("deleted url with alias", slog.String("url", alias))
 
-		//http.Redirect(w, r, resURL, http.StatusFound)
+		responseOK(w, r, alias)
 	}
+}
+
+func responseOK(w http.ResponseWriter, r *http.Request, alias string) {
+	render.JSON(w, r, Response{
+		Response: resp.OKResponse(),
+		Alias:    alias,
+	})
 }
