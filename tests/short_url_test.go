@@ -9,8 +9,8 @@ import (
 	"github.com/gavv/httpexpect/v2"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Alex322322/short-url//internal/lib/api"
-	"github.com/Alex322322/short-url//internal/lib/random"
+	"github.com/Alex322322/short-url/internal/lib/api"
+	"github.com/Alex322322/short-url/internal/lib/random"
 	"github.com/Alex322322/short-url/internal/http/server/handlers/url/save"
 )
 
@@ -28,7 +28,7 @@ func TestURLShortener_HappyPath(t *testing.T) {
 	e.POST("/url").
 		WithJSON(save.Request{
 			URL:   gofakeit.URL(),
-			Alias: random.NewRandomString(10),
+			Alias: random.GenerateAlias(10),
 		}).
 		WithBasicAuth("myuser", "mypass").
 		Expect().
