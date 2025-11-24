@@ -67,7 +67,9 @@ func New(logger *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			alias = random.GenerateAlias(aliasLength)
 		}
 
-		id, err := urlSaver.SaveURL(request.URL, alias, time.Now())
+		timestamp := time.Now().Truncate(time.Second)
+		
+		id, err := urlSaver.SaveURL(request.URL, alias, timestamp)
 		if err != nil {
 			if err == storage.ErrUrlExists {
 				logger.Info("URL with the same alias already exists", slog.String("url", request.URL), slog.String("alias", alias))
