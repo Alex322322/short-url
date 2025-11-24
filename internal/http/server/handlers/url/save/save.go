@@ -16,6 +16,7 @@ import (
 type Request struct {
 	URL   string `json:"url" validate:"required,url"` // validate tag for validator
 	Alias string `json:"alias,omitempty"`
+	Timestamp time.Time `json:"timestamp,omitempty"`
 }
 
 type Response struct {
@@ -25,6 +26,7 @@ type Response struct {
 
 const aliasLength = 8
 
+//go:generate go run github.com/vektra/mockery/v3@latest --dir . --name URLSaver --output ./mocks
 type URLSaver interface {
 	SaveURL(urlToSave string, alias string, timestamp time.Time) (int64, error)
 }
@@ -65,7 +67,7 @@ func New(logger *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			alias = random.GenerateAlias(aliasLength)
 		}
 
-		id, err := urlSaver.SaveURL(request.URL, alias, time.Now())
+		id, err := urlSaver.SaveURL(request.URL, alias, request.Timestamp)
 		if err != nil {
 			if err == storage.ErrUrlExists {
 				logger.Info("URL with the same alias already exists", slog.String("url", request.URL), slog.String("alias", alias))
