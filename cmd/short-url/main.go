@@ -9,6 +9,7 @@ import (
 	"log/slog"
 
 	"github.com/Alex322322/short-url/internal/config"
+	"github.com/Alex322322/short-url/internal/http/server/handlers/redirect"
 	"github.com/Alex322322/short-url/internal/http/server/handlers/url/save"
 	mwLogger "github.com/Alex322322/short-url/internal/http/server/middleware/logger"
 	"github.com/Alex322322/short-url/internal/storage/sqlite"
@@ -66,6 +67,7 @@ func main() {
 	//
 
 	router.Post("/url", save.New(logger, storage))
+	router.Get("/{alias}", redirect.New(logger, storage))
 
 	// TODO run server - net/http
 	logger.Info("Starting HTTP server", slog.String("address", cfg.HTTPServer.Address))

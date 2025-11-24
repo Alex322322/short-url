@@ -2,3 +2,6 @@ packages:
     github.com/Alex322322/short-url/internal/http/server/handlers/url/save:
         interfaces:
             URLSaver:
+    github.com/Alex322322/short-url/internal/http/server/handlers/redirect:
+        interfaces:
+            URLGetter:
