@@ -6,7 +6,7 @@ import (
 
 	resp "github.com/Alex322322/short-url/internal/lib/api/response"
 	"github.com/Alex322322/short-url/internal/storage"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 )
