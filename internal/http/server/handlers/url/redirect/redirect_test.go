@@ -25,6 +25,27 @@ func TestSaveHandler(t *testing.T) {
 			alias: "test_alias",
 			url:   "https://www.google.com/",
 		},
+		/*
+			{
+				name:      "Empty alias",
+				alias:     "",
+				url:       "https://www.google.com/",
+				respError: "Not Found",
+			},
+			{
+				name:      "Empty URL",
+				url:       "",
+				alias:     "some_alias",
+				respError: "URL is a required field",
+				mockError: errors.New("unexpected error"),
+			},
+			{
+				name:      "Invalid URL",
+				url:       "some invalid URL",
+				alias:     "some_alias",
+				respError: "URL is not a valid URL",
+			},
+		*/
 	}
 
 	for _, tc := range cases {
