@@ -32,7 +32,7 @@ go.work.sum
 .vscode/
 
 # Storage
-/storage/storage.db
+./storage/storage.db
 
 # config files with sensitive data
 # /config/prod.yaml
