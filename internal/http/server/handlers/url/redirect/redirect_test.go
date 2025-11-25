@@ -1,7 +1,6 @@
 package redirect_test
 
 import (
-	"errors"
 	"net/http/httptest"
 	"testing"
 
