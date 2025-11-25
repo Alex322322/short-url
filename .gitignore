@@ -28,5 +28,12 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+
+# Storage
+/storage/storage.db
+
+# config files with sensitive data
+# /config/prod.yaml
+/config/local.yaml

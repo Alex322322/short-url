@@ -1,0 +1,15 @@
+env: "prod" # задаем среду запуска prod
+storage_path: "./storage.db"
+http_server:
+  address: "0.0.0.0:8084"
+  timeout: 5s
+  idle_timeout: 120s
+  user: "admin"
+  password: "${HTTP_SERVER_PASSWORD}" # используем переменную окружения для пароля
+postgres:
+  host: "${POSTGRES_HOST}"
+  port: "${POSTGRES_PORT}"
+  user: "${POSTGRES_USER}"
+  password: "${POSTGRES_PASSWORD}"
+  db_name: "${POSTGRES_DB}"
+  sslmode: "${POSTGRES_SSLMODE}"
