@@ -32,12 +32,12 @@ func BuildConnString(cfg ConfigPostgres) string {
 }
 
 type ConfigPostgres struct {
-	Host     string `yaml:"host" env-required:"true"`
-	Port     string `yaml:"port" env-required:"true"`
-	User     string `yaml:"user" env-required:"true"`
-	Password string `yaml:"password" env-required:"true"`
-	DBName   string `yaml:"db_name" env-required:"true"`
-	SSLMode  string `yaml:"sslmode" env-required:"true"`
+    Host     string `yaml:"host" env:"POSTGRES_HOST"`
+    Port     string `yaml:"port" env:"POSTGRES_PORT"`
+    User     string `yaml:"user" env:"POSTGRES_USER"`
+    Password string `yaml:"password" env:"POSTGRES_PASSWORD"`
+    DBName   string `yaml:"db_name" env:"POSTGRES_DB"`
+    SSLMode  string `yaml:"sslmode" env:"POSTGRES_SSLMODE"`
 }
 
 func MustLoad() *Config {
