@@ -14,7 +14,7 @@ import (
 	"github.com/Alex322322/short-url/internal/http/server/handlers/url/save"
 	mwLogger "github.com/Alex322322/short-url/internal/http/server/middleware/logger"
 	"github.com/Alex322322/short-url/internal/storage/sqlite"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 
 	//"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5/middleware"
@@ -35,7 +35,6 @@ func main() {
 
 	// init config
 	cfg := config.MustLoad()
-	//fmt.Println(cfg)
 
 	// init logger
 	logger := setupLogger(cfg.Env)
@@ -52,8 +51,6 @@ func main() {
 		)
 		os.Exit(1)
 	}
-
-	_ = storage // TODO remove after storage used
 
 	// init router - chi
 	router := chi.NewRouter()

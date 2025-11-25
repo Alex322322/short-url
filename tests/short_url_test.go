@@ -3,15 +3,18 @@ package tests
 import (
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/gavv/httpexpect/v2"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 
+	"github.com/Alex322322/short-url/internal/http/server/handlers/url/save"
 	"github.com/Alex322322/short-url/internal/lib/api"
 	"github.com/Alex322322/short-url/internal/lib/random"
-	"github.com/Alex322322/short-url/internal/http/server/handlers/url/save"
 )
 
 const (
@@ -26,20 +29,32 @@ func TestURLShortener_HappyPath(t *testing.T) {
 	// setup httpexpect client
 	e := httpexpect.Default(t, u.String())
 
+	err := godotenv.Load("../.env")
+	require.NoError(t, err, "Failed to load .env file")
+
+	password := os.Getenv("HTTP_SERVER_PASSWORD")
+	require.NotEmpty(t, password, "HTTP_SERVER_PASSWORD must be set in .env file")
+
 	e.POST("/url").
 		WithJSON(save.Request{
 			URL:   gofakeit.URL(),
 			Alias: random.GenerateAlias(10),
 		}).
-		WithBasicAuth("admin", "${HTTP_SERVER_PASSWORD}").
+		WithBasicAuth("admin", password).
 		Expect().
 		Status(200).
 		JSON().Object().
 		ContainsKey("alias")
 }
 
-//nolint:funlen
+
 func TestURLShortener_SaveRedirectRemove(t *testing.T) {
+	err := godotenv.Load("../.env")
+	require.NoError(t, err, "Failed to load .env file")
+
+	password := os.Getenv("HTTP_SERVER_PASSWORD")
+	require.NotEmpty(t, password, "HTTP_SERVER_PASSWORD must be set in .env file")
+
 	testCases := []struct {
 		name  string
 		url   string
@@ -55,14 +70,13 @@ func TestURLShortener_SaveRedirectRemove(t *testing.T) {
 			name:  "Invalid URL",
 			url:   "invalid_url",
 			alias: gofakeit.Word(),
-			error: "field URL is not a valid URL",
+			error: "URL is not a valid URL",
 		},
 		{
 			name:  "Empty Alias",
 			url:   gofakeit.URL(),
 			alias: "",
 		},
-		// TODO: add more test cases
 	}
 
 	for _, tc := range testCases {
@@ -75,13 +89,12 @@ func TestURLShortener_SaveRedirectRemove(t *testing.T) {
 			e := httpexpect.Default(t, u.String())
 
 			// Save
-
 			resp := e.POST("/url").
 				WithJSON(save.Request{
 					URL:   tc.url,
 					Alias: tc.alias,
 				}).
-				WithBasicAuth("myuser", "mypass").
+				WithBasicAuth("admin", password).
 				Expect().Status(http.StatusOK).
 				JSON().Object()
 
@@ -104,18 +117,17 @@ func TestURLShortener_SaveRedirectRemove(t *testing.T) {
 			}
 
 			// Redirect
-
 			testRedirect(t, alias, tc.url)
 
 			// Remove
-			reqDel := e.DELETE("/url/{alias}", alias).
-				WithBasicAuth("myuser", "mypass").
+			reqDel := e.DELETE("/"+path.Join("url", alias)).
+				WithBasicAuth("admin", password).
 				Expect().Status(http.StatusOK).
 				JSON().Object()
 			reqDel.Value("status").String().IsEqual("ok")
 
 			// Redirect after remove
-			testRedirect(t, alias, tc.url)
+			testRedirectNotFound(t, alias)
 		})
 	}
 }
@@ -124,11 +136,22 @@ func testRedirect(t *testing.T, alias string, urlToRedirect string) {
 	u := url.URL{
 		Scheme: "http",
 		Host:   host,
-		Path:   alias,
+		Path:   "/" + alias,
 	}
 
 	redirectedToURL, err := api.GetRedirect(u.String())
 	require.NoError(t, err)
 
 	require.Equal(t, urlToRedirect, redirectedToURL)
+}
+
+func testRedirectNotFound(t *testing.T, alias string) {
+	u := url.URL{
+		Scheme: "http",
+		Host:   host,
+		Path:  "/" + alias,
+	}
+
+	_, err := api.GetRedirect(u.String())
+	require.Error(t, err, api.ErrInvalidStatusCode)
 }
