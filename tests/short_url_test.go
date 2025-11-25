@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	host = "localhost:8082"
+	host = "localhost:8084"
 )
 
 func TestURLShortener_HappyPath(t *testing.T) {
@@ -23,6 +23,7 @@ func TestURLShortener_HappyPath(t *testing.T) {
 		Scheme: "http",
 		Host:   host,
 	}
+	// setup httpexpect client
 	e := httpexpect.Default(t, u.String())
 
 	e.POST("/url").
@@ -30,7 +31,7 @@ func TestURLShortener_HappyPath(t *testing.T) {
 			URL:   gofakeit.URL(),
 			Alias: random.GenerateAlias(10),
 		}).
-		WithBasicAuth("myuser", "mypass").
+		WithBasicAuth("admin", "${HTTP_SERVER_PASSWORD}").
 		Expect().
 		Status(200).
 		JSON().Object().
@@ -38,7 +39,7 @@ func TestURLShortener_HappyPath(t *testing.T) {
 }
 
 //nolint:funlen
-func TestURLShortener_SaveRedirect(t *testing.T) {
+func TestURLShortener_SaveRedirectRemove(t *testing.T) {
 	testCases := []struct {
 		name  string
 		url   string
@@ -104,6 +105,16 @@ func TestURLShortener_SaveRedirect(t *testing.T) {
 
 			// Redirect
 
+			testRedirect(t, alias, tc.url)
+
+			// Remove
+			reqDel := e.DELETE("/url/{alias}", alias).
+				WithBasicAuth("myuser", "mypass").
+				Expect().Status(http.StatusOK).
+				JSON().Object()
+			reqDel.Value("status").String().IsEqual("ok")
+
+			// Redirect after remove
 			testRedirect(t, alias, tc.url)
 		})
 	}
