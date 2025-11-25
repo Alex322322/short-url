@@ -13,7 +13,7 @@ import (
 	"github.com/Alex322322/short-url/internal/http/server/handlers/url/redirect"
 	"github.com/Alex322322/short-url/internal/http/server/handlers/url/save"
 	mwLogger "github.com/Alex322322/short-url/internal/http/server/middleware/logger"
-	"github.com/Alex322322/short-url/internal/storage/sqlite"
+	"github.com/Alex322322/short-url/internal/storage/postgres"
 	"github.com/go-chi/chi/v5"
 
 	//"github.com/go-chi/chi/middleware"
@@ -42,7 +42,9 @@ func main() {
 	logger.Debug("Debug is turned on")
 
 	// init storage
-	storage, err := sqlite.NewStorage(cfg.StoragePath)
+	//storage, err := sqlite.NewStorage(cfg.StoragePath)
+
+	storage, err := postgres.NewStorage(postgres.BuildConnString(postgres.Config(cfg.ConfigPostgres)))
 	if err != nil {
 		logger.Error(
 			"Failed to initialize storage",
