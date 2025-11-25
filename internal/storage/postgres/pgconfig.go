@@ -1,5 +1,6 @@
 package postgres
 
+/*
 import "fmt"
 
 func BuildConnString(cfg Config) string {
@@ -17,3 +18,4 @@ type Config struct {
 	DBName   string
 	SSLMode  string
 }
+*/

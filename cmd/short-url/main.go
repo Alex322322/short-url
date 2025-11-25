@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"log/slog"
@@ -44,11 +47,11 @@ func main() {
 	// init storage
 	//storage, err := sqlite.NewStorage(cfg.StoragePath)
 
-	storage, err := postgres.NewStorage(postgres.BuildConnString(postgres.Config(cfg.ConfigPostgres)))
+	storage, err := postgres.NewStorage(config.BuildConnString(cfg.ConfigPostgres))
 	if err != nil {
 		logger.Error(
 			"Failed to initialize storage",
-			slog.String("storage_path", cfg.StoragePath),
+			slog.String("port: ", cfg.ConfigPostgres.Port),
 			slog.String("error", err.Error()),
 		)
 		os.Exit(1)
@@ -88,11 +91,34 @@ func main() {
 		WriteTimeout: cfg.HTTPServer.Timeout,
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 	}
-	if err := srv.ListenAndServe(); err != nil {
-		logger.Error("HTTP server failed", slog.String("error", err.Error()))
-		os.Exit(1)
+
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	// Gracefull shutdown
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			logger.Error("failed to start server")
+		}
+	}()
+
+	logger.Info("server started")
+
+	<-done
+	logger.Info("stopping server")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Error("failed to stop server", slog.String("error", err.Error()))
+
+		return
 	}
-	logger.Error("HTTP server stopped")
+
+	// TODO: close storage
+	logger.Info("HTTP server stopped")
 }
 
 // setup logger based on environment
