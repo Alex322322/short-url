@@ -1,6 +1,6 @@
 # Short URL Service
 
-Высокопроизводительный сервис для сокращения URL на Go с поддержкой PostgreSQL и Docker
+Сервис для сокращения URL на Go с поддержкой PostgreSQL и Docker
 
 ## Возможности
 
